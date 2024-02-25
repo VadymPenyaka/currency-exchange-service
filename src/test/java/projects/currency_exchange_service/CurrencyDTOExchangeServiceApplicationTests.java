@@ -1,10 +1,10 @@
-package projects.currencyexchangeservice;
+package projects.currency_exchange_service;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class CurrencyExchangeServiceApplicationTests {
+class CurrencyDTOExchangeServiceApplicationTests {
 
 	@Test
 	void contextLoads() {
