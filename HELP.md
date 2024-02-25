@@ -1,7 +1,7 @@
 # Read Me First
 The following was discovered as part of building this project:
 
-* The original package name 'projects.currency-exchange-service' is invalid and this project uses 'projects.currencyexchangeservice' instead.
+* The original package name 'projects.currency-exchange-service' is invalid and this project uses 'projects.currency_exchange_service' instead.
 
 # Getting Started
 
