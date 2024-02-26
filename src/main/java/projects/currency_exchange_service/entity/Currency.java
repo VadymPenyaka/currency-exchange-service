@@ -29,7 +29,4 @@ public class Currency {
     private Double buyRate;
     private Double sellRate;
 
-    private Double availableAmount;
-
-    private Boolean isAvailable;
 }

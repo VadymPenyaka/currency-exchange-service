@@ -4,18 +4,19 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import projects.currency_exchange_service.entity.Currency;
+import projects.currency_exchange_service.mapper.CurrencyMapper;
 import projects.currency_exchange_service.model.CurrencyDTO;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.text.DecimalFormat;
 import java.util.*;
+
 import com.google.gson.JsonArray;
 import projects.currency_exchange_service.repository.CurrencyRepository;
 
@@ -26,6 +27,7 @@ public class CurrencyServiceImpl implements  CurrencyService {
 
     private final double DEFAULT_MARKUP_PERCENT = 3;
 
+    private final CurrencyMapper currencyMapper;
     private final CurrencyRepository currencyRepository;
 
 
@@ -58,30 +60,27 @@ public class CurrencyServiceImpl implements  CurrencyService {
         return buyRate-buyRate%0.01;//round double
     }
 
-
-
     private HttpURLConnection getConnection () throws IOException {
         URL url = new URL(NBU_RATE_URL);
         HttpURLConnection request = (HttpURLConnection) url.openConnection();
         return request;
     }
 
-
-
-
     @Override
+    @Scheduled(cron = "0 0 9-18 * * *")
     public void updateAllCurrencies() throws IOException {
         currencyRepository.deleteAll();
-        List<CurrencyDTO> currencies = new ArrayList<>();
+        List<CurrencyDTO> currenciesDTO = new ArrayList<>();
         JsonArray jsonArray = getCurrenciesInJsonArray();
 
         for (int i =0; i<jsonArray.size(); i++ ) {
             JsonElement element= jsonArray.get(i);
             JsonObject jsonObject = element.getAsJsonObject();
-            currencies.add(convertNBUJsonObjectToCurrencyDTO(jsonObject));
+            currenciesDTO.add(convertNBUJsonObjectToCurrencyDTO(jsonObject));
         }
 
-//        currencyRepository.saveAllAndFlush(currencies);
+        List<Currency> currencies = currenciesDTO.stream().map(currencyMapper::currencyDtoToCurrency).toList();
+        currencyRepository.saveAllAndFlush(currencies);
     }
 
     @Override
@@ -92,5 +91,13 @@ public class CurrencyServiceImpl implements  CurrencyService {
     @Override
     public CurrencyDTO addNewCurrency() {
         return null;
+    }
+
+    @Override
+    public List<CurrencyDTO> getAllCurrencies() {
+        return currencyRepository.findAll()
+                .stream()
+                .map(currencyMapper::currencyToCurrencyDto)
+                .toList();
     }
 }
