@@ -1,6 +1,5 @@
 package projects.currency_exchange_service.service;
 
-import projects.currency_exchange_service.entity.Currency;
 import projects.currency_exchange_service.model.CurrencyDTO;
 
 import java.io.IOException;
@@ -13,6 +12,5 @@ public interface CurrencyService {
     Optional<CurrencyDTO> getCurrencyByName (String currencyName);
 
     CurrencyDTO addNewCurrency ();
-
-//  List<Currency> getAllCurrencies ();
+    List<CurrencyDTO> getAllCurrencies ();
 }

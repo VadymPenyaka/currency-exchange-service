@@ -92,4 +92,12 @@ public class CurrencyServiceImpl implements  CurrencyService {
     public CurrencyDTO addNewCurrency() {
         return null;
     }
+
+    @Override
+    public List<CurrencyDTO> getAllCurrencies() {
+        return currencyRepository.findAll()
+                .stream()
+                .map(currencyMapper::currencyToCurrencyDto)
+                .toList();
+    }
 }
