@@ -1,14 +1,18 @@
 package projects.currency_exchange_service.service;
 
+import projects.currency_exchange_service.entity.Currency;
 import projects.currency_exchange_service.model.CurrencyDTO;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
 
 public interface CurrencyService {
-    public void updateAllCurrencies() throws IOException;
+    void updateAllCurrencies() throws IOException;
 
-    public Optional<CurrencyDTO> getCurrencyByName (String currencyName);
+    Optional<CurrencyDTO> getCurrencyByName (String currencyName);
 
-    public CurrencyDTO addNewCurrency ();
+    CurrencyDTO addNewCurrency ();
+
+//  List<Currency> getAllCurrencies ();
 }
