@@ -4,6 +4,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import projects.currency_exchange_service.entity.Currency;
@@ -16,6 +17,8 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 import com.google.gson.JsonArray;
 import projects.currency_exchange_service.repository.CurrencyRepository;
@@ -31,20 +34,69 @@ public class CurrencyServiceImpl implements  CurrencyService {
     private final CurrencyRepository currencyRepository;
 
 
-    private JsonArray getCurrenciesInJsonArray () throws IOException {
+    @Override
+    @Scheduled(cron = "0 0 9-18 * * *")
+    public List<CurrencyDTO> updateAllCurrencies() throws IOException {
+        currencyRepository.deleteAll();
+        List<Currency> currencies = new ArrayList<>();
+        JsonArray jsonArray = getCurrenciesInJsonArray();
 
+        for (int i =0; i<jsonArray.size(); i++ ) {
+            JsonElement element= jsonArray.get(i);
+            JsonObject jsonObject = element.getAsJsonObject();
+            currencies.add(convertNBUJsonObjectToCurrencyDTO(jsonObject));
+        }
+
+        List<Currency> savedCurrencies = currencyRepository.saveAll(currencies);
+
+        return savedCurrencies.stream().map(currencyMapper::currencyToCurrencyDto).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<CurrencyDTO> getCurrencyByName(String currencyName) {
+        return currencyRepository.findAllByFullName(currencyName)
+                .stream()
+                .map(currencyMapper::currencyToCurrencyDto)
+                .toList();
+    }
+
+    @Override
+    public List<CurrencyDTO> getAllCurrencies() {
+        return currencyRepository.findAll()
+                .stream()
+                .map(currencyMapper::currencyToCurrencyDto)
+                .toList();
+    }
+
+    @Override
+    public Optional<CurrencyDTO> updateCurrencyById(UUID id, CurrencyDTO currencyDTO) {
+        AtomicReference<Optional<CurrencyDTO>> atomicReference = new AtomicReference<>();
+
+        currencyRepository.findById(id).ifPresentOrElse(foundCurrency->{
+            foundCurrency.setBuyRate(currencyDTO.getBuyRate());
+            foundCurrency.setCode(currencyDTO.getCode());
+            foundCurrency.setFullName(currencyDTO.getFullName());
+            foundCurrency.setShortName(currencyDTO.getShortName());
+            foundCurrency.setSellRate(currencyDTO.getSellRate());
+            atomicReference.set(Optional.of(currencyMapper
+                    .currencyToCurrencyDto(currencyRepository.save(foundCurrency))));
+        }, ()-> atomicReference.set(Optional.empty()));
+
+        return atomicReference.get();
+    }
+
+    private JsonArray getCurrenciesInJsonArray () throws IOException {
         JsonElement root = JsonParser.parseReader(new InputStreamReader((InputStream) getConnection().getContent()));
         JsonArray jsonArray = root.getAsJsonArray();
-        System.out.println(jsonArray);
 
         return jsonArray;
     }
 
-    private CurrencyDTO convertNBUJsonObjectToCurrencyDTO (JsonObject jsonObject) {
-        return CurrencyDTO.builder()
+    private Currency convertNBUJsonObjectToCurrencyDTO (JsonObject jsonObject) {
+        return Currency.builder()
                 .shortName(jsonObject.get("cc").getAsString())
                 .fullName(jsonObject.get("txt").getAsString())
-                .code(jsonObject.get("r030").getAsInt())
+                .code(jsonObject.get("r030").getAsString())
                 .buyRate(calculateBuyRate(jsonObject.get("rate").getAsDouble(), DEFAULT_MARKUP_PERCENT))
                 .sellRate(calculateSellRate(jsonObject.get("rate").getAsDouble(), DEFAULT_MARKUP_PERCENT))
                 .build();
@@ -62,42 +114,6 @@ public class CurrencyServiceImpl implements  CurrencyService {
 
     private HttpURLConnection getConnection () throws IOException {
         URL url = new URL(NBU_RATE_URL);
-        HttpURLConnection request = (HttpURLConnection) url.openConnection();
-        return request;
-    }
-
-    @Override
-    @Scheduled(cron = "0 0 9-18 * * *")
-    public void updateAllCurrencies() throws IOException {
-        currencyRepository.deleteAll();
-        List<CurrencyDTO> currenciesDTO = new ArrayList<>();
-        JsonArray jsonArray = getCurrenciesInJsonArray();
-
-        for (int i =0; i<jsonArray.size(); i++ ) {
-            JsonElement element= jsonArray.get(i);
-            JsonObject jsonObject = element.getAsJsonObject();
-            currenciesDTO.add(convertNBUJsonObjectToCurrencyDTO(jsonObject));
-        }
-
-        List<Currency> currencies = currenciesDTO.stream().map(currencyMapper::currencyDtoToCurrency).toList();
-        currencyRepository.saveAllAndFlush(currencies);
-    }
-
-    @Override
-    public Optional<CurrencyDTO> getCurrencyByName(String currencyName) {
-        return Optional.empty();
-    }
-
-    @Override
-    public CurrencyDTO addNewCurrency() {
-        return null;
-    }
-
-    @Override
-    public List<CurrencyDTO> getAllCurrencies() {
-        return currencyRepository.findAll()
-                .stream()
-                .map(currencyMapper::currencyToCurrencyDto)
-                .toList();
+        return (HttpURLConnection) url.openConnection();
     }
 }

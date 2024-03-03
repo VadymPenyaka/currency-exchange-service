@@ -5,12 +5,14 @@ import projects.currency_exchange_service.model.CurrencyDTO;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 public interface CurrencyService {
-    void updateAllCurrencies() throws IOException;
+    List<CurrencyDTO> updateAllCurrencies() throws IOException;
 
-    Optional<CurrencyDTO> getCurrencyByName (String currencyName);
+    List<CurrencyDTO> getCurrencyByName (String currencyName);
 
-    CurrencyDTO addNewCurrency ();
     List<CurrencyDTO> getAllCurrencies ();
+
+    Optional<CurrencyDTO> updateCurrencyById (UUID id, CurrencyDTO currencyDTO);
 }

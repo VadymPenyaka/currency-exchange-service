@@ -25,7 +25,7 @@ public class Currency {
 
     private String shortName;
     private String fullName;
-    private Integer code;
+    private String code;
     private Double buyRate;
     private Double sellRate;
 
