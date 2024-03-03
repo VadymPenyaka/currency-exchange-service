@@ -31,7 +31,8 @@ public class CurrencyRepositoryTest {
 
         Currency savedCurrency = currencyRepository.save(currency);
 
-        assertThat(currency).isEqualTo(savedCurrency);
+        assertThat(savedCurrency).isNotNull();
+        assertThat(savedCurrency.getId()).isEqualTo(currency.getId());
     }
 
     @Test
