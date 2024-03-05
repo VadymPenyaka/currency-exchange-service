@@ -78,7 +78,7 @@ public class CurrencyServiceImpl implements  CurrencyService {
             foundCurrency.setFullName(currencyDTO.getFullName());
             foundCurrency.setShortName(currencyDTO.getShortName());
             foundCurrency.setSellRate(currencyDTO.getSellRate());
-            atomicReference.set(Optional.of(currencyMapper
+            atomicReference.set(Optional.ofNullable(currencyMapper
                     .currencyToCurrencyDto(currencyRepository.save(foundCurrency))));
         }, ()-> atomicReference.set(Optional.empty()));
 
