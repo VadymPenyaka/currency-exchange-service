@@ -3,8 +3,8 @@ package projects.currency_exchange_service.service;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import projects.currency_exchange_service.entity.Currency;
@@ -35,7 +35,8 @@ public class CurrencyServiceImpl implements  CurrencyService {
 
 
     @Override
-    @Scheduled(cron = "0 0 9-18 * * *")
+    @Transactional
+    @Scheduled(cron = "0 1-59 * * * *")
     public List<CurrencyDTO> updateAllCurrencies() throws IOException {
         currencyRepository.deleteAll();
         List<Currency> currencies = new ArrayList<>();
@@ -48,12 +49,11 @@ public class CurrencyServiceImpl implements  CurrencyService {
         }
 
         List<Currency> savedCurrencies = currencyRepository.saveAll(currencies);
-
         return savedCurrencies.stream().map(currencyMapper::currencyToCurrencyDto).collect(Collectors.toList());
     }
 
     @Override
-    public List<CurrencyDTO> getCurrencyByName(String currencyName) {
+    public List<CurrencyDTO> getCurrencyByFullName(String currencyName) {
         return currencyRepository.findAllByFullName(currencyName)
                 .stream()
                 .map(currencyMapper::currencyToCurrencyDto)
@@ -66,6 +66,13 @@ public class CurrencyServiceImpl implements  CurrencyService {
                 .stream()
                 .map(currencyMapper::currencyToCurrencyDto)
                 .toList();
+    }
+
+    @Override
+    public List<CurrencyDTO> getCurrencyByShortName(String shortName) {
+        return currencyRepository.findAllByShortName(shortName).stream()
+                .map(currencyMapper::currencyToCurrencyDto)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -104,12 +111,12 @@ public class CurrencyServiceImpl implements  CurrencyService {
 
     private double calculateSellRate (double initialRate, double markupPercent) {
         double sellRate = initialRate*(1+markupPercent/100);
-        return sellRate-sellRate%0.01;//round double
+        return sellRate-sellRate%0.0001;//round double
     }
 
     private double calculateBuyRate (double initialRate, double markupPercent) {
         double buyRate = initialRate*(1-markupPercent/100);
-        return buyRate-buyRate%0.01;//round double
+        return buyRate-buyRate%0.0001;//round double
     }
 
     private HttpURLConnection getConnection () throws IOException {

@@ -52,7 +52,7 @@ public class CurrencyRepositoryTest {
     }
 
     @Test
-    void getCurrencyByNameTest () {
+    void getCurrencyByFullNameTest () {
         Currency savedCurrency = currencyRepository.save(Currency.builder()
                 .id(UUID.randomUUID())
                 .shortName("USD")
@@ -65,5 +65,22 @@ public class CurrencyRepositoryTest {
         List<Currency> foundCurrency = currencyRepository.findAllByFullName(savedCurrency.getFullName());
 
         assertThat(foundCurrency.size()).isNotEqualTo(0);
+    }
+
+    @Test
+    void getCurrencyByShortNameTest () {
+        Currency savedCurrency = currencyRepository.save(Currency.builder()
+                .id(UUID.randomUUID())
+                .shortName("USD")
+                .fullName("USA dollar")
+                .code("123")
+                .buyRate(36.2)
+                .sellRate(36.0)
+                .build());
+
+        List<Currency> foundCurrency = currencyRepository.findAllByShortName(savedCurrency.getShortName());
+
+        assertThat(foundCurrency.size()).isEqualTo(1);
+        assertThat(foundCurrency.get(0).getShortName()).isEqualTo(savedCurrency.getShortName());
     }
 }

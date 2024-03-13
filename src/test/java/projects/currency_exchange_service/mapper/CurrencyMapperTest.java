@@ -35,4 +35,21 @@ public class CurrencyMapperTest {
         assertThat(currencyDTO).isNotNull();
         assertThat(currencyDTO.getId()).isEqualTo(currency.getId());
     }
+
+    @Test
+    void currencyDtoTOCurrencyTest () {
+        CurrencyDTO currencyDto = CurrencyDTO.builder()
+                .id(UUID.randomUUID())
+                .shortName("USD")
+                .fullName("USA dollar")
+                .code("123")
+                .buyRate(36.2)
+                .sellRate(36.0)
+                .build();
+
+        Currency currency = currencyMapper.currencyDtoToCurrency(currencyDto);
+
+        assertThat(currency).isNotNull();
+        assertThat(currencyDto.getId()).isEqualTo(currency.getId());
+    }
 }

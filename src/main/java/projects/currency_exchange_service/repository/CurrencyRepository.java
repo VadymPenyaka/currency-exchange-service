@@ -9,4 +9,6 @@ import java.util.UUID;
 
 public interface CurrencyRepository extends JpaRepository<Currency, UUID> {
     List<Currency> findAllByFullName (String name);
+
+    List<Currency> findAllByShortName (String shortName);
 }

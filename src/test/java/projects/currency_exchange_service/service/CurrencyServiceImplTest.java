@@ -84,7 +84,7 @@ class CurrencyServiceImplTest {
     @Test
     void getCurrencyByName() {
         when(currencyRepository.findAllByFullName(any())).thenReturn(currencies);
-        List<CurrencyDTO> foundCurrencies = currencyService.getCurrencyByName("USA");
+        List<CurrencyDTO> foundCurrencies = currencyService.getCurrencyByFullName("USA");
 
         assertThat(foundCurrencies).isNotNull();
         assertThat(foundCurrencies.size()).isEqualTo(2);
@@ -114,5 +114,16 @@ class CurrencyServiceImplTest {
 
         assertThat(updatedCurrencyDTO).isNotNull();
         assertThat(updatedCurrencyDTO.getFullName()).isEqualTo(currencyToUpdate.getFullName());
+    }
+
+    @Test
+    void getCurrencyByShortName () {
+        when(currencyRepository.findAllByShortName(any())).thenReturn(currencies);
+
+        List<CurrencyDTO> foundCurrencyDTOS = currencyService.getCurrencyByShortName(currencies.get(0).getShortName());
+
+        assertThat(foundCurrencyDTOS).isNotNull();
+        assertThat(foundCurrencyDTOS.size()).isEqualTo(2);
+
     }
 }
