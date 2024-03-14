@@ -10,11 +10,9 @@ import java.util.UUID;
 public interface CurrencyService {
     List<CurrencyDTO> updateAllCurrencies() throws IOException;
 
-    List<CurrencyDTO> getCurrencyByFullName(String currencyName);
-
-    List<CurrencyDTO> getAllCurrencies ();
-
-    List<CurrencyDTO> getCurrencyByShortName (String shortName);
+    List<CurrencyDTO> getAllCurrencies (String fullName, String shortName);
 
     Optional<CurrencyDTO> updateCurrencyById (UUID id, CurrencyDTO currencyDTO);
+
+    Optional<CurrencyDTO> getCurrencyByID (UUID id);
 }

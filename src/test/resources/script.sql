@@ -1,0 +1,9 @@
+CREATE TABLE IF NOT EXISTS CURRENCY (
+    id VARCHAR(36) NOT NULL,
+    buy_rate FLOAT(53) NOT NULL,
+    code VARCHAR(3) NOT NULL,
+    full_name VARCHAR(45) NOT NULL,
+    sell_rate FLOAT(53) NOT NULL,
+    short_name VARCHAR(45) NOT NULL,
+    PRIMARY KEY (id)
+);
