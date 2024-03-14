@@ -7,6 +7,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import projects.currency_exchange_service.entity.Currency;
 import projects.currency_exchange_service.mapper.CurrencyMapper;
 import projects.currency_exchange_service.model.CurrencyDTO;
@@ -36,7 +37,7 @@ public class CurrencyServiceImpl implements  CurrencyService {
 
     @Override
     @Transactional
-    @Scheduled(cron = "0 1-59 * * * *")
+    @Scheduled(cron = "0 0 9-18 * * *")
     public List<CurrencyDTO> updateAllCurrencies() throws IOException {
         currencyRepository.deleteAll();
         List<Currency> currencies = new ArrayList<>();
@@ -52,28 +53,37 @@ public class CurrencyServiceImpl implements  CurrencyService {
         return savedCurrencies.stream().map(currencyMapper::currencyToCurrencyDto).collect(Collectors.toList());
     }
 
-    @Override
     public List<CurrencyDTO> getCurrencyByFullName(String currencyName) {
         return currencyRepository.findAllByFullName(currencyName)
                 .stream()
                 .map(currencyMapper::currencyToCurrencyDto)
                 .toList();
     }
-
-    @Override
-    public List<CurrencyDTO> getAllCurrencies() {
-        return currencyRepository.findAll()
-                .stream()
-                .map(currencyMapper::currencyToCurrencyDto)
-                .toList();
-    }
-
-    @Override
     public List<CurrencyDTO> getCurrencyByShortName(String shortName) {
         return currencyRepository.findAllByShortName(shortName).stream()
                 .map(currencyMapper::currencyToCurrencyDto)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public List<CurrencyDTO> getAllCurrencies(String fullName, String shortName) {
+        List<CurrencyDTO> foundCurrencies;
+        if (StringUtils.hasText(fullName) && !StringUtils.hasText(shortName)) {
+            foundCurrencies = getCurrencyByFullName(fullName);
+        } else if (!StringUtils.hasText(fullName) && StringUtils.hasText(shortName)) {
+            foundCurrencies = getCurrencyByShortName(shortName);
+        } else
+            foundCurrencies = currencyRepository.findAll()
+                    .stream()
+                    .map(currencyMapper::currencyToCurrencyDto)
+                    .toList();
+
+        return foundCurrencies;
+
+    }
+
+
+
 
     @Override
     public Optional<CurrencyDTO> updateCurrencyById(UUID id, CurrencyDTO currencyDTO) {
@@ -90,6 +100,13 @@ public class CurrencyServiceImpl implements  CurrencyService {
         }, ()-> atomicReference.set(Optional.empty()));
 
         return atomicReference.get();
+    }
+
+    @Override
+    public Optional<CurrencyDTO> getCurrencyByID(UUID id) {
+        return Optional.ofNullable((currencyMapper
+                .currencyToCurrencyDto(currencyRepository
+                        .findById(id).orElse(null))));
     }
 
     private JsonArray getCurrenciesInJsonArray () throws IOException {

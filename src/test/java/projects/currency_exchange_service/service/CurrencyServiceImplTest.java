@@ -94,7 +94,7 @@ class CurrencyServiceImplTest {
     void getAllCurrencies() {
         when(currencyRepository.findAll()).thenReturn(currencies);
 
-        List<CurrencyDTO> foundCurrencyDTOS = currencyService.getAllCurrencies();
+        List<CurrencyDTO> foundCurrencyDTOS = currencyService.getAllCurrencies(null, null);
 
         assertThat(foundCurrencyDTOS).isNotNull();
         assertThat(foundCurrencyDTOS.size()).isEqualTo(2);
