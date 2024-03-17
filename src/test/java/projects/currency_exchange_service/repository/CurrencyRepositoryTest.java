@@ -65,6 +65,7 @@ public class CurrencyRepositoryTest {
         List<Currency> foundCurrency = currencyRepository.findAllByFullName(savedCurrency.getFullName());
 
         assertThat(foundCurrency.size()).isNotEqualTo(0);
+        assertThat(foundCurrency.get(0).getFullName()).isEqualTo(savedCurrency.getFullName());
     }
 
     @Test
