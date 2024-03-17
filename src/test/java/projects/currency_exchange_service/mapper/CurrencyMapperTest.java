@@ -20,7 +20,7 @@ public class CurrencyMapperTest {
 
 
     @Test
-    void currencyToCurrencyDtoTest () {
+    public void currencyToCurrencyDtoTest () {
         Currency currency = Currency.builder()
                 .id(UUID.randomUUID())
                 .shortName("USD")
@@ -37,7 +37,7 @@ public class CurrencyMapperTest {
     }
 
     @Test
-    void currencyDtoTOCurrencyTest () {
+    public void currencyDtoTOCurrencyTest () {
         CurrencyDTO currencyDto = CurrencyDTO.builder()
                 .id(UUID.randomUUID())
                 .shortName("USD")

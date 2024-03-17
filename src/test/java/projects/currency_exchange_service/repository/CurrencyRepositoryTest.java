@@ -16,10 +16,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 @AutoConfigureTestDatabase(connection = EmbeddedDatabaseConnection.H2)
 public class CurrencyRepositoryTest {
     @Autowired
-    CurrencyRepository currencyRepository;
+    private CurrencyRepository currencyRepository;
 
     @Test
-    void saveCurrencyTest () {
+    public void saveCurrencyTest () {
         Currency currency = Currency.builder()
                 .id(UUID.randomUUID())
                 .shortName("USD")
@@ -36,7 +36,7 @@ public class CurrencyRepositoryTest {
     }
 
     @Test
-    void getCurrencyByIdTest () {
+    public void getCurrencyByIdTest () {
         Currency savedCurrency = currencyRepository.save(Currency.builder()
                 .id(UUID.randomUUID())
                 .shortName("USD")
@@ -52,7 +52,7 @@ public class CurrencyRepositoryTest {
     }
 
     @Test
-    void getCurrencyByFullNameTest () {
+    public void getCurrencyByFullNameTest () {
         Currency savedCurrency = currencyRepository.save(Currency.builder()
                 .id(UUID.randomUUID())
                 .shortName("USD")
@@ -69,7 +69,7 @@ public class CurrencyRepositoryTest {
     }
 
     @Test
-    void getCurrencyByShortNameTest () {
+    public void getCurrencyByShortNameTest () {
         Currency savedCurrency = currencyRepository.save(Currency.builder()
                 .id(UUID.randomUUID())
                 .shortName("USD")

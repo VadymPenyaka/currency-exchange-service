@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import projects.currency_exchange_service.exception.NotFoundException;
 import projects.currency_exchange_service.model.CurrencyDTO;
 import projects.currency_exchange_service.service.CurrencyService;
 
@@ -25,12 +26,13 @@ public class CurrencyController {
 
     @GetMapping(value = CURRENCY_PATH_ID)
     public CurrencyDTO getCurrencyByID (@PathVariable("id") UUID id) {
-        return currencyService.getCurrencyByID(id).get();
+        return currencyService.getCurrencyByID(id).orElseThrow(NotFoundException::new);
     }
 
     @PutMapping(value = CURRENCY_PATH_ID)
     public ResponseEntity updateCurrencyByID (@PathVariable UUID id, @RequestBody CurrencyDTO currency) {
-        currencyService.updateCurrencyById(id, currency);
+        if(currencyService.updateCurrencyById(id, currency).isEmpty())
+            new NotFoundException("Currency is not found!");
 
         return new ResponseEntity(HttpStatus.NO_CONTENT);
     }
