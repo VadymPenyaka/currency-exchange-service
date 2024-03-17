@@ -32,7 +32,7 @@ public class CurrencyController {
     @PutMapping(value = CURRENCY_PATH_ID)
     public ResponseEntity updateCurrencyByID (@PathVariable UUID id, @RequestBody CurrencyDTO currency) {
         if(currencyService.updateCurrencyById(id, currency).isEmpty())
-            new NotFoundException();
+            new NotFoundException("Currency is not found!");
 
         return new ResponseEntity(HttpStatus.NO_CONTENT);
     }

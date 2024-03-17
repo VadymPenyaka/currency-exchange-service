@@ -1,6 +1,7 @@
 package projects.currency_exchange_service.service;
 
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -21,18 +22,18 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class CurrencyServiceImplTest {
     @Mock
-    CurrencyRepository currencyRepository;
+    private CurrencyRepository currencyRepository;
 
     @InjectMocks
-    CurrencyServiceImpl currencyService;
+    private CurrencyServiceImpl currencyService;
 
     @Mock
-    CurrencyMapperImpl currencyMapper;
+    private CurrencyMapperImpl currencyMapper;
 
-    static List<Currency> currencies = new ArrayList<>();
-    static List<CurrencyDTO> currencyDTOS = new ArrayList<>();
-    @BeforeAll
-    static void setUp () {
+    private static List<Currency> currencies = new ArrayList<>();
+    private static List<CurrencyDTO> currencyDTOS = new ArrayList<>();
+    @BeforeEach
+    void setUp () {
         currencies = Arrays.asList(
                 Currency.builder()
                         .id(UUID.randomUUID())
@@ -73,7 +74,7 @@ class CurrencyServiceImplTest {
     }
 
     @Test
-    void updateAllCurrenciesTest() throws IOException {
+    public void updateAllCurrenciesTest() throws IOException {
         when(currencyRepository.saveAll(any())).thenReturn(currencies);
 
         List<CurrencyDTO> updatedCurrencies = currencyService.updateAllCurrencies();
@@ -82,7 +83,7 @@ class CurrencyServiceImplTest {
     }
 
     @Test
-    void getCurrencyByName() {
+    public void getCurrencyByName() {
         when(currencyRepository.findAllByFullName(any())).thenReturn(currencies);
         List<CurrencyDTO> foundCurrencies = currencyService.getCurrencyByFullName("USA");
 
@@ -91,7 +92,7 @@ class CurrencyServiceImplTest {
     }
 
     @Test
-    void getAllCurrencies() {
+    public void getAllCurrencies() {
         when(currencyRepository.findAll()).thenReturn(currencies);
 
         List<CurrencyDTO> foundCurrencyDTOS = currencyService.getAllCurrencies(null, null);
@@ -101,7 +102,7 @@ class CurrencyServiceImplTest {
     }
 
     @Test
-    void updateCurrencyById() {
+    public void updateCurrencyById() {
         Currency currencyToUpdate = currencies.get(0);
         CurrencyDTO currencyDTO = currencyDTOS.get(0);
 
@@ -117,13 +118,24 @@ class CurrencyServiceImplTest {
     }
 
     @Test
-    void getCurrencyByShortName () {
+    public void getCurrencyByShortName () {
         when(currencyRepository.findAllByShortName(any())).thenReturn(currencies);
 
         List<CurrencyDTO> foundCurrencyDTOS = currencyService.getCurrencyByShortName(currencies.get(0).getShortName());
 
         assertThat(foundCurrencyDTOS).isNotNull();
         assertThat(foundCurrencyDTOS.size()).isEqualTo(2);
+
+    }
+
+    @Test
+    public void getCurrencyById () {
+        when(currencyRepository.findById(any())).thenReturn(Optional.ofNullable(currencies.get(0)));
+        when(currencyMapper.currencyToCurrencyDto(any())).thenReturn(currencyDTOS.get(0));
+        CurrencyDTO foundCurrency = currencyService.getCurrencyByID(currencies.get(0).getId()).get();
+
+        assertThat(foundCurrency).isNotNull();
+        assertThat(foundCurrency.getFullName()).isEqualTo(currencies.get(0).getFullName());
 
     }
 }
