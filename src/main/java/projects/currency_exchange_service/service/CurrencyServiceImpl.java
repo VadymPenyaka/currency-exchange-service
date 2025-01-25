@@ -3,13 +3,10 @@ package projects.currency_exchange_service.service;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-import projects.currency_exchange_service.entity.Currency;
-import projects.currency_exchange_service.mapper.CurrencyMapper;
 import projects.currency_exchange_service.model.CurrencyDTO;
 
 import java.io.IOException;
@@ -22,7 +19,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import com.google.gson.JsonArray;
-import projects.currency_exchange_service.repository.CurrencyRepository;
 
 @Service
 @RequiredArgsConstructor
@@ -31,16 +27,14 @@ public class CurrencyServiceImpl implements  CurrencyService {
 
     private final double DEFAULT_MARKUP_PERCENT = 3;
 
-    private final CurrencyMapper currencyMapper;
-    private final CurrencyRepository currencyRepository;
+    private List<CurrencyDTO> currencies = new ArrayList<>();
 
 
     @Override
-    @Transactional
-    @Scheduled(cron = "0 0 9-18 * * *")
+//    @Scheduled(cron = "0 0 9-18 * * *")
+    @Scheduled(cron = "*/5 * * * * *")
     public List<CurrencyDTO> updateAllCurrencies() throws IOException {
-        currencyRepository.deleteAll();
-        List<Currency> currencies = new ArrayList<>();
+        currencies.removeAll(currencies);
         JsonArray jsonArray = getCurrenciesInJsonArray();
 
         for (int i =0; i<jsonArray.size(); i++ ) {
@@ -49,37 +43,24 @@ public class CurrencyServiceImpl implements  CurrencyService {
             currencies.add(convertNBUJsonObjectToCurrencyDTO(jsonObject));
         }
 
-        List<Currency> savedCurrencies = currencyRepository.saveAll(currencies);
-        return savedCurrencies.stream().map(currencyMapper::currencyToCurrencyDto).collect(Collectors.toList());
+        return currencies;
     }
 
     public List<CurrencyDTO> getCurrencyByFullName(String currencyName) {
-        return currencyRepository.findAllByFullName(currencyName)
-                .stream()
-                .map(currencyMapper::currencyToCurrencyDto)
-                .toList();
+        return currencies.stream().filter(currencyDTO -> currencyDTO.getFullName().equals(currencyName)).toList();
     }
     public List<CurrencyDTO> getCurrencyByShortName(String shortName) {
-        return currencyRepository.findAllByShortName(shortName).stream()
-                .map(currencyMapper::currencyToCurrencyDto)
-                .collect(Collectors.toList());
+        return currencies.stream().filter(currencyDTO -> currencyDTO.getShortName().equals(shortName)).toList();
     }
 
     @Override
     public List<CurrencyDTO> getAllCurrencies(String fullName, String shortName) {
-        List<CurrencyDTO> foundCurrencies;
         if (StringUtils.hasText(fullName) && !StringUtils.hasText(shortName)) {
-            foundCurrencies = getCurrencyByFullName(fullName);
+            return getCurrencyByFullName(fullName);
         } else if (!StringUtils.hasText(fullName) && StringUtils.hasText(shortName)) {
-            foundCurrencies = getCurrencyByShortName(shortName);
-        } else
-            foundCurrencies = currencyRepository.findAll()
-                    .stream()
-                    .map(currencyMapper::currencyToCurrencyDto)
-                    .toList();
-
-        return foundCurrencies;
-
+            return getCurrencyByShortName(shortName);
+            }
+            return currencies;
     }
 
 
@@ -89,24 +70,24 @@ public class CurrencyServiceImpl implements  CurrencyService {
     public Optional<CurrencyDTO> updateCurrencyById(UUID id, CurrencyDTO currencyDTO) {
         AtomicReference<Optional<CurrencyDTO>> atomicReference = new AtomicReference<>();
 
-        currencyRepository.findById(id).ifPresentOrElse(foundCurrency->{
-            foundCurrency.setBuyRate(currencyDTO.getBuyRate());
-            foundCurrency.setCode(currencyDTO.getCode());
-            foundCurrency.setFullName(currencyDTO.getFullName());
-            foundCurrency.setShortName(currencyDTO.getShortName());
-            foundCurrency.setSellRate(currencyDTO.getSellRate());
-            atomicReference.set(Optional.ofNullable(currencyMapper
-                    .currencyToCurrencyDto(currencyRepository.save(foundCurrency))));
-        }, ()-> atomicReference.set(Optional.empty()));
+        getCurrencyByID(id).ifPresentOrElse(foundCurrency->{
+                foundCurrency.setBuyRate(currencyDTO.getBuyRate());
+                foundCurrency.setCode(currencyDTO.getCode());
+                foundCurrency.setFullName(currencyDTO.getFullName());
+                foundCurrency.setShortName(currencyDTO.getShortName());
+                foundCurrency.setSellRate(currencyDTO.getSellRate());
+                atomicReference.set(Optional.of(foundCurrency));
+                currencies.add(foundCurrency);
+            }, ()-> atomicReference.set(Optional.empty()));
 
         return atomicReference.get();
     }
 
     @Override
     public Optional<CurrencyDTO> getCurrencyByID(UUID id) {
-        return Optional.ofNullable((currencyMapper
-                .currencyToCurrencyDto(currencyRepository
-                        .findById(id).orElse(null))));
+        return Optional.ofNullable(currencies.stream()
+                .filter(currencyDTO -> currencyDTO.getId().equals(id))
+                .findFirst().orElse(null));
     }
 
     private JsonArray getCurrenciesInJsonArray () throws IOException {
@@ -116,8 +97,8 @@ public class CurrencyServiceImpl implements  CurrencyService {
         return jsonArray;
     }
 
-    private Currency convertNBUJsonObjectToCurrencyDTO (JsonObject jsonObject) {
-        return Currency.builder()
+    private CurrencyDTO convertNBUJsonObjectToCurrencyDTO (JsonObject jsonObject) {
+        return CurrencyDTO.builder()
                 .shortName(jsonObject.get("cc").getAsString())
                 .fullName(jsonObject.get("txt").getAsString())
                 .code(jsonObject.get("r030").getAsString())
